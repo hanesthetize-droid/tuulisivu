@@ -11,6 +11,22 @@ export default async () => {
     };
   }
 
+  // Mellsten/Melsu: Surfing Ry:n oma sääasema, julkaisee suoraan m/s-tekstiä
+  // Formaatti: " HH:MM dir°   min <  avg <  max   temp°C  paine  kosteus%  sade"
+  async function fetchMelsten() {
+    const r = await fetch('https://mellsten.surfing.fi/lastWeather.txt');
+    const txt = (await r.text()).trim();
+    // esim: "08:17 222°   3.7 <  4.3 <  4.8   14.7°C  1018.8  82.8%   0.0"
+    const m = txt.match(/(\d+)°\s+([\d.]+)\s*<\s*([\d.]+)\s*<\s*([\d.]+)/);
+    if (!m) throw new Error('Mellsten: parsinta epäonnistui: ' + txt.slice(0, 80));
+    const [, dir, min, avg, max] = m;
+    return {
+      speed: parseFloat(avg),
+      gust: parseFloat(max),
+      dir: parseFloat(dir),
+    };
+  }
+
   async function fetchFMI(fmisid) {
     // HUOM: parametrit pyydetään ilman t2m:ää, joten datablokissa on
     // täsmälleen 3 saraketta: ws_10min, wg_10min, winddirection (tässä järjestyksessä)
@@ -68,7 +84,7 @@ export default async () => {
 
   const [laru, melsu, harmaja, tapiola] = await Promise.allSettled([
     fetchLaru(),
-    fetchFMI('100968'), // Helsinki Kaivopuisto (oletus Melsulle - tarkista _stationName)
+    fetchMelsten(),     // Surfing Ry oma asema (vastaa Windguru 2399)
     fetchFMI('100996'), // Helsinki Harmaja (vahvistettu oikeaksi)
     fetchFMI('874863'), // Espoo Tapiola (vahvistettu oikeaksi)
   ]);
