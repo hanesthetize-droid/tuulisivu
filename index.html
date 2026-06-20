@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stadin tuulikyylä</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0b0f14;
+      --surface: #131920;
+      --card:    #1a2330;
+      --border:  #243040;
+      --accent:  #f472b6;
+      --accent2: #be185d;
+      --text:    #e8edf2;
+      --muted:   #7a90a4;
+      --radius:  18px;
+      --shadow:  0 4px 32px rgba(0,0,0,.45);
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100dvh; padding: 20px 16px 36px;
+    }
+    header { text-align: center; margin-bottom: 22px; }
+    header h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(1.35rem, 5vw, 1.75rem);
+      font-weight: 700; letter-spacing: -0.02em;
+    }
+    header h1 span { color: var(--accent); }
+    .wave-bar { display:flex; justify-content:center; gap:3px; margin-top:14px; }
+    .wave-bar span {
+      display:block; width:4px; border-radius:2px;
+      background:var(--accent); animation: wave 1.4s ease-in-out infinite;
+    }
+    .wave-bar span:nth-child(1){height:10px;animation-delay:0s;   opacity:.5}
+    .wave-bar span:nth-child(2){height:18px;animation-delay:.15s; opacity:.7}
+    .wave-bar span:nth-child(3){height:26px;animation-delay:.3s;  opacity:1 }
+    .wave-bar span:nth-child(4){height:18px;animation-delay:.45s; opacity:.7}
+    .wave-bar span:nth-child(5){height:10px;animation-delay:.6s;  opacity:.5}
+    .wave-bar span:nth-child(6){height: 5px;animation-delay:.75s; opacity:.3}
+    .wave-bar span:nth-child(7){height:10px;animation-delay:.9s;  opacity:.5}
+    @keyframes wave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.45)}}
+    @media(prefers-reduced-motion:reduce){.wave-bar span{animation:none}}
+
+    /* METRO */
+    .metro-label {
+      font-size:.65rem; font-weight:600; letter-spacing:.08em;
+      text-transform:uppercase; color:var(--muted);
+      text-align:center; margin-bottom:10px;
+    }
+    .live-grid {
+      display:grid; grid-template-columns:1fr;
+      gap:12px; max-width:680px; margin:0 auto 26px;
+    }
+    .live-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:14px; overflow:hidden;
+    }
+    .live-card-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 12px; background:var(--surface);
+      border-bottom:1px solid var(--border);
+    }
+    .live-name {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:.8rem; font-weight:600; color:var(--text);
+    }
+    .live-badge {
+      font-size:.55rem; font-weight:600; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--accent);
+      background:rgba(244,114,182,.12);
+      border:1px solid rgba(244,114,182,.25);
+      padding:2px 7px; border-radius:999px;
+    }
+    .live-embed { width:100%; overflow:hidden; }
+
+    /* METRO-MITTARISTO */
+    .metro-grid {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:8px; max-width:680px; margin:0 auto 22px;
+    }
+    .metro-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:10px 4px 8px;
+      text-align:center; position:relative; min-width:0;
+    }
+    .metro-card::before {
+      content:''; position:absolute; top:0; left:15%; right:15%; height:2px;
+      background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    }
+    .metro-name {
+      font-size:.6rem; font-weight:600; color:var(--muted);
+      letter-spacing:.04em; text-transform:uppercase;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      margin-bottom:5px;
+    }
+    .metro-arrow-wrap {
+      width:28px; height:28px; margin:0 auto 5px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .metro-arrow { transition:transform .6s ease; }
+    .metro-speed {
+      font-family:'Space Grotesk',sans-serif;
+      font-size:1.2rem; font-weight:700; color:var(--text); line-height:1;
+    }
+    .metro-gust  { font-size:.6rem; color:var(--muted); margin-top:2px; }
+    .metro-gust b{ color:var(--accent); }
+    .metro-unit  { font-size:.5rem; color:var(--border); margin-top:2px; letter-spacing:.04em; }
+    .metro-loading {
+      font-size:.7rem; color:var(--muted); padding:18px 0;
+      animation:pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+    .metro-err { font-size:.58rem; color:#f87171; padding:14px 0; }
+    .metro-updated {
+      font-size:.6rem; color:var(--muted); text-align:center;
+      margin-top:-12px; margin-bottom:14px;
+    }
+
+    /* MAIN CARDS */
+    .cards { display:flex; flex-direction:column; gap:20px; max-width:680px; margin:0 auto; }
+    .card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden;
+    }
+    .card-header {
+      display:flex; align-items:center; gap:10px;
+      padding:16px 20px 14px; border-bottom:1px solid var(--border);
+      background:var(--surface);
+    }
+    .card-icon {
+      width:32px; height:32px; border-radius:8px;
+      background:linear-gradient(135deg,var(--accent2),var(--accent));
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .card-icon svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;}
+    .card-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:600;line-height:1.2;}
+    .card-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
+    .badge{
+      margin-left:auto; font-size:.65rem; font-weight:600;
+      letter-spacing:.06em; text-transform:uppercase;
+      color:var(--accent); background:rgba(244,114,182,.12);
+      border:1px solid rgba(244,114,182,.25);
+      padding:3px 9px; border-radius:999px; white-space:nowrap;
+    }
+    .img-wrap{background:#0d1a24;padding:12px;text-align:center;}
+    .wind-img{width:100%;max-width:100%;height:auto;display:block;border-radius:10px;}
+    .refresh-row{
+      display:flex;align-items:center;justify-content:flex-end;
+      gap:8px;padding:8px 12px 4px;font-size:.7rem;color:var(--muted);
+    }
+    .refresh-btn{
+      background:none;border:1px solid var(--border);color:var(--accent);
+      padding:3px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:inherit;
+    }
+    .refresh-btn:hover{background:rgba(244,114,182,.08);}
+    .windy-wrap{padding:14px;background:#f5f7f9;border-radius:0 0 var(--radius) var(--radius);}
+    .windy-wrap>div,.windy-wrap iframe{width:100%!important;max-width:100%!important;}
+    footer{text-align:center;margin-top:32px;font-size:.72rem;color:var(--muted);}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Stadin <span>tuulikyylä</span></h1>
+  <div class="wave-bar" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+  </div>
+</header>
+
+<div class="metro-label">Live-mittarit · m/s</div>
+<div class="metro-updated" id="metroUpdated">Haetaan...</div>
+<div class="metro-grid" id="metroGrid"></div>
+
+<div class="metro-label" style="margin-top:6px;">Graafit</div>
+<div class="live-grid">
+  <div class="live-card">
+    <div class="live-card-header">
+      <span class="live-name">WG Laru</span>
+      <span class="live-badge">Live</span>
+    </div>
+    <div class="live-embed" style="overflow:hidden;">
+      <div style="transform-origin:top left; transform:scale(0.6); width:167%; height:467px;">
+        <iframe src="https://www.windguru.cz/wgs-iframe-widget.php?s=47"
+          scrolling="no" frameborder="0"
+          style="width:100%;height:467px;border:none;display:block;"></iframe>
+      </div>
+    </div>
+  </div>
+  <div class="live-card">
+    <div class="live-card-header">
+      <span class="live-name">Harmaja · live</span>
+      <span class="live-badge">Live</span>
+    </div>
+    <div class="live-embed" style="overflow:hidden;">
+      <div style="transform-origin:top left; transform:scale(0.55); width:182%; height:545px;">
+        <iframe src="https://m.aaltopoiju.fi/data.php?v=harmaja&tz=Europe/Helsinki"
+          scrolling="no" frameborder="0"
+          style="width:100%;height:545px;border:none;display:block;"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="cards">
+  <article class="card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Aaltopoiju Ennuste Laru</div>
+        <div class="card-sub">Tuuliennuste Lauttasaari</div>
+      </div>
+      <span class="badge">Ennuste</span>
+    </div>
+    <div class="card-body">
+      <div class="img-wrap">
+        <img id="windImg" class="wind-img"
+          src="https://www.aaltopoiju.fi/stroke_graph.php?get=online_wind&latlon=60.1487,24.8634&lng=fi&geoid=&name=&tz=Europe/Helsinki"
+          alt="Aaltopoiju ennuste Laru" />
+      </div>
+      <div class="refresh-row">
+        <span id="lastUpdate">–</span>
+        <button class="refresh-btn" onclick="refreshImg()">↻ Päivitä</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+      </div>
+      <div>
+        <div class="card-title">Windy.app Ennuste</div>
+        <div class="card-sub">7 vrk tuuliennuste</div>
+      </div>
+      <span class="badge">Ennuste</span>
+    </div>
+    <div class="card-body">
+      <div class="windy-wrap">
+        <div data-windywidget="forecast" data-thememode="white"
+          data-spotid="41924" data-appid="a1ae99e4002ebcf5d59cd56fab5df96c"></div>
+        <script async="true" data-cfasync="false" type="text/javascript"
+          src="https://windy.app/widgets-code/forecast/windy_forecast_async.js?v194"></script>
+      </div>
+    </div>
+  </article>
+</main>
+
+<footer>Tiedot: Aaltopoiju · Windy.app · larukite.fi · FMI avoin data</footer>
+
+<script>
+
+// ─── METRO-MITTARISTO (Netlify Function /api/wind) ────────────────────────
+const STATIONS = [
+  { id:'s0', name:'WG Laru',  key:'laru'    },
+  { id:'s1', name:'WG Melsu', key:'melsu'   },
+  { id:'s2', name:'Harmaja',  key:'harmaja' },
+  { id:'s3', name:'Tapiola',  key:'tapiola' },
+];
+
+const metroGrid = document.getElementById('metroGrid');
+STATIONS.forEach(s => {
+  const d = document.createElement('div');
+  d.className = 'metro-card';
+  d.id = 'mc-' + s.id;
+  d.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-loading">···</div>`;
+  metroGrid.appendChild(d);
+});
+
+function arrow(dir) {
+  const r = (dir + 180) % 360;
+  return `<svg class="metro-arrow" width="26" height="26" viewBox="0 0 26 26"
+    style="transform:rotate(${r}deg)" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="13,1 18,19 13,15 8,19" fill="#f472b6"/>
+    <circle cx="13" cy="13" r="2.5" fill="#be185d"/>
+  </svg>`;
+}
+
+function renderMetro(s, data) {
+  const el = document.getElementById('mc-' + s.id);
+  if (!el || !data) return;
+  el.innerHTML = `
+    <div class="metro-name">${s.name}</div>
+    <div class="metro-arrow-wrap">${arrow(data.dir)}</div>
+    <div class="metro-speed">${data.speed.toFixed(1)}</div>
+    <div class="metro-gust">(<b>${data.gust.toFixed(1)}</b>)</div>
+    <div class="metro-unit">m/s · ${Math.round(data.dir)}°</div>
+  `;
+}
+
+function errMetro(s) {
+  const el = document.getElementById('mc-' + s.id);
+  if (!el) return;
+  el.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-err">ei dataa</div>`;
+}
+
+async function loadMetro() {
+  try {
+    const res = await fetch('/api/wind');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    STATIONS.forEach(s => {
+      const d = data[s.key];
+      if (d) renderMetro(s, d);
+      else errMetro(s);
+    });
+    document.getElementById('metroUpdated').textContent =
+      'Päivitetty ' + new Date().toLocaleTimeString('fi-FI');
+  } catch(e) {
+    console.error('loadMetro virhe:', e);
+    STATIONS.forEach(errMetro);
+    document.getElementById('metroUpdated').textContent = 'Haku epäonnistui';
+  }
+}
+
+loadMetro();
+setInterval(loadMetro, 5 * 60 * 1000);
+
+// ─── AALTOPOIJU ───────────────────────────────────────────────────────────
+function refreshImg() {
+  document.getElementById('windImg').src =
+    'https://www.aaltopoiju.fi/stroke_graph.php?get=online_wind&latlon=60.1487,24.8634&lng=fi&geoid=&name=&tz=Europe/Helsinki&_=' + Date.now();
+  document.getElementById('lastUpdate').textContent =
+    'Päivitetty ' + new Date().toLocaleTimeString('fi-FI');
+}
+setInterval(refreshImg, 5 * 60 * 1000);
+window.addEventListener('load', () => {
+  document.getElementById('lastUpdate').textContent =
+    'Ladattu ' + new Date().toLocaleTimeString('fi-FI');
+});
+</script>
+</body>
+</html>
