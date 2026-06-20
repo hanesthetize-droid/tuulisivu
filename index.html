@@ -118,7 +118,7 @@
     }
     .metro-gust  { font-size:.6rem; color:var(--muted); margin-top:2px; }
     .metro-gust b{ color:var(--accent); }
-    .metro-unit  { font-size:.5rem; color:var(--border); margin-top:2px; letter-spacing:.04em; }
+    .metro-unit  { font-size:.62rem; color:var(--text); margin-top:2px; letter-spacing:.04em; opacity:.85; }
     .metro-loading {
       font-size:.7rem; color:var(--muted); padding:18px 0;
       animation:pulse 1.2s ease-in-out infinite;
@@ -288,18 +288,16 @@ function renderMetro(s, data) {
   if (!el || !data) return;
   el.innerHTML = `
     <div class="metro-name">${s.name}</div>
-    <div class="metro-arrow-wrap">${arrow(data.dir)}</div>
     <div class="metro-speed">${data.speed.toFixed(1)}</div>
     <div class="metro-gust">(<b>${data.gust.toFixed(1)}</b>)</div>
     <div class="metro-unit">m/s · ${Math.round(data.dir)}°</div>
-    <div class="metro-link-hint">↗ avaa</div>
   `;
 }
 
 function errMetro(s) {
   const el = document.getElementById('mc-' + s.id);
   if (!el) return;
-  el.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-err">ei dataa</div><div class="metro-link-hint">↗ avaa</div>`;
+  el.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-err">ei dataa</div>`;
 }
 
 async function loadMetro() {
