@@ -288,6 +288,7 @@ function renderMetro(s, data) {
   if (!el || !data) return;
   el.innerHTML = `
     <div class="metro-name">${s.name}</div>
+    <div class="metro-arrow-wrap">${arrow(data.dir)}</div>
     <div class="metro-speed">${data.speed.toFixed(1)}</div>
     <div class="metro-gust">(<b>${data.gust.toFixed(1)}</b>)</div>
     <div class="metro-unit">m/s · ${Math.round(data.dir)}°</div>
