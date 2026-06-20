@@ -12,6 +12,8 @@ export default async () => {
   }
 
   async function fetchFMI(fmisid) {
+    // HUOM: parametrit pyydetään ilman t2m:ää, joten datablokissa on
+    // täsmälleen 3 saraketta: ws_10min, wg_10min, winddirection (tässä järjestyksessä)
     const url = 'https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature'
       + '&storedquery_id=fmi::observations::weather::multipointcoverage'
       + '&fmisid=' + fmisid
@@ -19,28 +21,56 @@ export default async () => {
     const r = await fetch(url);
     const txt = await r.text();
 
-    // Parsitaan doubleOrNilReasonTupleList kuten Python-koodissa
+    // Poimitaan aseman nimi FMI:n vastauksesta, jotta voimme tarkistaa
+    // että fmisid vastaa sitä asemaa jota luulimme pyytävämme
+    const nameMatch = txt.match(/locationcode\/name">([^<]+)</);
+    const stationName = nameMatch ? nameMatch[1] : 'tuntematon';
+
+    const idMatch = txt.match(/stationcode\/fmisid">(\d+)</);
+    const returnedId = idMatch ? idMatch[1] : null;
+
+    // Selvitetään sarakejärjestys swe:field-määrittelyistä (varman päälle)
+    const fieldNames = [...txt.matchAll(/<swe:field name="(\w+)"/g)].map(m => m[1]);
+
     const match = txt.match(/doubleOrNilReasonTupleList[^>]*>([\s\S]*?)<\//);
     if (!match) throw new Error('Ei dataa fmisid=' + fmisid);
 
     const rows = match[1].trim().split('\n').map(r => r.trim().split(/\s+/));
-    // Viimeisin rivi jossa kaikki arvot ovat valideja
+
+    const wsIdx  = fieldNames.indexOf('ws_10min');
+    const wgIdx  = fieldNames.indexOf('wg_10min');
+    const dirIdx = fieldNames.indexOf('winddirection');
+    if (wsIdx === -1 || dirIdx === -1) throw new Error('Sarakkeita ei tunnistettu fmisid=' + fmisid);
+
+    // Viimeisin rivi jossa ws_10min ja winddirection ovat valideja
     let last = null;
     for (let i = rows.length - 1; i >= 0; i--) {
       const r = rows[i];
-      if (r.length >= 3 && r.every(v => v !== 'NaN' && !isNaN(parseFloat(v)))) {
+      if (r.length > Math.max(wsIdx, wgIdx, dirIdx)
+          && r[wsIdx] !== 'NaN' && !isNaN(parseFloat(r[wsIdx]))
+          && r[dirIdx] !== 'NaN' && !isNaN(parseFloat(r[dirIdx]))) {
         last = r; break;
       }
     }
-    if (!last) throw new Error('Kaikki NaN fmisid=' + fmisid);
-    return { speed: parseFloat(last[0]), gust: parseFloat(last[1]), dir: parseFloat(last[2]) };
+    if (!last) throw new Error('Kaikki rivit NaN fmisid=' + fmisid);
+
+    const speed = parseFloat(last[wsIdx]);
+    const gustRaw = wgIdx >= 0 ? parseFloat(last[wgIdx]) : NaN;
+    return {
+      speed,
+      gust: isNaN(gustRaw) ? speed : gustRaw,
+      dir: parseFloat(last[dirIdx]),
+      _requestedFmisid: fmisid,
+      _returnedFmisid: returnedId,
+      _stationName: stationName,
+    };
   }
 
   const [laru, melsu, harmaja, tapiola] = await Promise.allSettled([
     fetchLaru(),
-    fetchFMI('100996'), // Kaivopuisto (lähinnä Melsu)
-    fetchFMI('100539'), // Harmaja
-    fetchFMI('101004'), // Tapiola
+    fetchFMI('100968'), // Helsinki Kaivopuisto (oletus Melsulle - tarkista _stationName)
+    fetchFMI('100996'), // Helsinki Harmaja (vahvistettu oikeaksi)
+    fetchFMI('874863'), // Espoo Tapiola (vahvistettu oikeaksi)
   ]);
 
   const pick = r => r.status === 'fulfilled' ? r.value : null;
