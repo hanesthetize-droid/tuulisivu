@@ -88,6 +88,14 @@
       background:var(--card); border:1px solid var(--border);
       border-radius:12px; padding:10px 4px 8px;
       text-align:center; position:relative; min-width:0;
+      cursor:pointer; transition:background .15s ease, transform .1s ease;
+      text-decoration:none; display:block;
+    }
+    .metro-card:active { transform:scale(0.97); }
+    .metro-card:hover { background:var(--surface); }
+    .metro-link-hint {
+      font-size:.48rem; color:var(--border); margin-top:4px;
+      letter-spacing:.03em;
     }
     .metro-card::before {
       content:''; position:absolute; top:0; left:15%; right:15%; height:2px;
@@ -178,7 +186,7 @@
 <div class="metro-updated" id="metroUpdated">Haetaan...</div>
 <div class="metro-grid" id="metroGrid"></div>
 
-<div class="metro-label" style="margin-top:6px;">Graafit</div>
+<div class="metro-label" style="margin-top:6px;">Graafi</div>
 <div class="live-grid">
   <div class="live-card">
     <div class="live-card-header">
@@ -190,19 +198,6 @@
         <iframe src="https://www.windguru.cz/wgs-iframe-widget.php?s=47"
           scrolling="no" frameborder="0"
           style="width:100%;height:467px;border:none;display:block;"></iframe>
-      </div>
-    </div>
-  </div>
-  <div class="live-card">
-    <div class="live-card-header">
-      <span class="live-name">Harmaja · live</span>
-      <span class="live-badge">Live</span>
-    </div>
-    <div class="live-embed" style="overflow:hidden;">
-      <div style="transform-origin:top left; transform:scale(0.55); width:182%; height:545px;">
-        <iframe src="https://m.aaltopoiju.fi/data.php?v=harmaja&tz=Europe/Helsinki"
-          scrolling="no" frameborder="0"
-          style="width:100%;height:545px;border:none;display:block;"></iframe>
       </div>
     </div>
   </div>
@@ -261,19 +256,22 @@
 
 // ─── METRO-MITTARISTO (Netlify Function /api/wind) ────────────────────────
 const STATIONS = [
-  { id:'s0', name:'WG Laru',  key:'laru'    },
-  { id:'s1', name:'WG Melsu', key:'melsu'   },
-  { id:'s2', name:'Harmaja',  key:'harmaja' },
-  { id:'s3', name:'Tapiola',  key:'tapiola' },
+  { id:'s0', name:'WG Laru',  key:'laru',    url:'https://www.windguru.cz/station/47'   },
+  { id:'s1', name:'WG Melsu', key:'melsu',   url:'https://www.windguru.cz/station/2399' },
+  { id:'s2', name:'Harmaja',  key:'harmaja', url:'https://www.ilmatieteenlaitos.fi/saa/helsinki/harmaja' },
+  { id:'s3', name:'Tapiola',  key:'tapiola', url:'https://www.ilmatieteenlaitos.fi/saa/espoo/tapiola' },
 ];
 
 const metroGrid = document.getElementById('metroGrid');
 STATIONS.forEach(s => {
-  const d = document.createElement('div');
-  d.className = 'metro-card';
-  d.id = 'mc-' + s.id;
-  d.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-loading">···</div>`;
-  metroGrid.appendChild(d);
+  const a = document.createElement('a');
+  a.className = 'metro-card';
+  a.id = 'mc-' + s.id;
+  a.href = s.url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-loading">···</div>`;
+  metroGrid.appendChild(a);
 });
 
 function arrow(dir) {
@@ -294,13 +292,14 @@ function renderMetro(s, data) {
     <div class="metro-speed">${data.speed.toFixed(1)}</div>
     <div class="metro-gust">(<b>${data.gust.toFixed(1)}</b>)</div>
     <div class="metro-unit">m/s · ${Math.round(data.dir)}°</div>
+    <div class="metro-link-hint">↗ avaa</div>
   `;
 }
 
 function errMetro(s) {
   const el = document.getElementById('mc-' + s.id);
   if (!el) return;
-  el.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-err">ei dataa</div>`;
+  el.innerHTML = `<div class="metro-name">${s.name}</div><div class="metro-err">ei dataa</div><div class="metro-link-hint">↗ avaa</div>`;
 }
 
 async function loadMetro() {
